@@ -30,6 +30,7 @@ Conn_Base = ConnPaper[c("LivingWhere_follow", "HealthStatus", "Age", "EducationY
 ```{r}
 setwd("S:/Indiana Research & Evaluation/Matthew Hanauer/ConnectionsPaperData")
 GPRAAll = read.csv("ConnGPRA.csv", header = TRUE, na.strings = c(-9, -8, -7, -1, "", " ", "NULL", NULL, NA, "NA")) 
+head(GPRAAll)
 GPRAAll_base = subset(GPRAAll, GPRAAll$InterviewType == 1)
 dim(GPRAAll_base)
 GPRAAll_six = subset(GPRAAll, GPRAAll$InterviewType == 2)
@@ -46,6 +47,9 @@ dim(GPRAAll_six)
 GPRAAll_six$ClientID  == GPRA_wide$ClientID
 
 ### Select only the variables that you want
+head(GPRA_wide)
+
+
 GPRA_wide_data = GPRA_wide[c("HealthSatisfaction.x", "HealthSatisfaction.y", "ERAlcoholSA.x", "ERAlcoholSA.y", "ERMental.x", "ERMental.y", "ERPhysical.x", "ERPhysical.y")]
 ### Get rid of missing data
 dim(GPRA_wide_data)
@@ -61,7 +65,7 @@ describe(GPRA_wide_data_complete)
 eff_health =  mean((GPRA_wide_data_complete$HealthSatisfaction.y - GPRA_wide_data_complete$HealthSatisfaction.x)/GPRA_wide_data_complete$HealthSatisfaction.x)
 eff_health*100
 
-cost_per_person = 2000000/48
+cost_per_person = (2000000*(48/200))/48
 cost_per_person
 
 ```
@@ -76,7 +80,8 @@ describe.factor(er_visit_six)
 eff_er = mean(er_visit_six - er_visit_base)
 eff_er
 
-cost_per_person = 2000000/48
+cost_per_person = (2000000/160)
+
 cost_per_person
 
 ## Need to adjust for inflation
@@ -85,6 +90,22 @@ er_2010
 
 er_data = round(data.frame(eff_er, cost_per_person, er_2010),3)
 er_data
+```
+Regresino
+```{r}
+library(tidyr)
+er_visit_total = data.frame(er_visit_base, er_visit_six)
+head(er_visit_total)
+
+
+er_total = reshape(er_visit_total, varying = list(c("er_visit_base", "er_visit_six")), times = c(0,1), direction = "long")
+er_total
+
+er_reg = glm(er_visit_base ~ time, data = er_total, family = "binomial")
+er_reg_sum = summary(er_reg)
+er_reg_sum
+exp(er_reg_sum$coefficients[,1])
+exp(confint(er_reg))
 ```
 
 
