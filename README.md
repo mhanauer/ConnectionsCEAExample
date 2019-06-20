@@ -100,7 +100,6 @@ head(er_visit_total)
 
 er_total = reshape(er_visit_total, varying = list(c("er_visit_base", "er_visit_six")), times = c(0,1), direction = "long")
 er_total
-
 er_reg = glm(er_visit_base ~ time, data = er_total, family = "binomial")
 er_reg_sum = summary(er_reg)
 er_reg_sum
