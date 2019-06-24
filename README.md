@@ -87,4 +87,10 @@ er_data = round(data.frame(eff_er, cost_per_person, er_2010),3)
 er_data
 ```
 
+```{r}
+##Regreaaions - KSM
+GPRAAll_ksm<- filter(GPRAAll, InterviewType =="1" | InterviewType == "2")
 
+summary(drugs<- lm(DAUseIllegDrugsDays~InterviewType + Age + Employment + Gender , data = GPRAAll_ksm))
+summary(alcohol<- lm(DAUseAlcoholDays~InterviewType + Age + Employment + Gender , data = GPRAAll_ksm))
+```
