@@ -59,12 +59,18 @@ print(cost_per_person <- 2000000/186)
 ##105 observations
 
 ```
-ER and Hospital Costs
+ER and Hospital Costs Data cleaning
+Grab just the variables that we want.  
+(Make sure this is true) The problem is that we do not know if the NAs in the times variables are actually NAs, because if the client says they have never been to the hosptial or ER then they get an NA for the times variable associated with that the non-times variable.  
+
+We first checked if there were any actual NAs in the each of the times variables that were actual NAs (i.e. they put NA on the non-times variables).  Then we made all the NAs Zero, because the remaining NAs should only be zeros.
 ```{r}
 GPRA_wide_MHcC<- GPRA_wide[c("ERAlcoholSA.x", "ERAlcoholSATimes.x", "ERAlcoholSA.y","ERAlcoholSATimes.y", "ERMental.x",  "ERMentalTimes.x", "ERMental.y", "ERMentalTimes.y", "InpatientMental.x", "InpatientMentalNights.x", "InpatientMental.y", "InpatientMentalNights.y", "InpatientAlcoholSA.x", "InpatientAlcoholSANights.x", "InpatientAlcoholSA.y", "InpatientAlcoholSANights.y", "OutpatientMental.x", "OutpatientMentalTimes.x", "OutpatientMental.y", "OutpatientMentalTimes.y", "OutpatientAlcoholSA.x", "OutpatientAlcoholSATimes.x", "OutpatientAlcoholSA.y", "OutpatientAlcoholSATimes.y")]
 GPRA_wide_MHcC[is.na(GPRA_wide_MHcC)]<-0
 GPRA_wide_data_MHcC = na.omit(GPRA_wide_MHcC)
-
+```
+ER and Hospital Calculations
+```{r}
 ##Total ER visits for base
 print(ER_AlcoholBase_tot<- sum(GPRA_wide_data_MHcC$ERAlcoholSATimes.x))
 print(ER_MentalBase_tot<- sum(GPRA_wide_data_MHcC$ERMentalTimes.x))
@@ -78,7 +84,9 @@ print(Total_ERvisitsSix<-sum(ER_AlcoholSix_tot,ER_MentalSix_tot))
 ##Percent change in ER visits
 print(perc_change<- ((Total_ERvisitsSix-Total_ERvisitsBase)/Total_ERvisitsBase)*100) ##44.4% reduction
 #print(ER_money_saved<-3486*0.444) ##Saved $1,548 per patient in ER visit costs
-print(Tot_ERMoneySaved<-3486*8) ##Saved $309,557 total
+
+## Using 8, because we are looking at the sum of visits to the ER.  There were 8 less visits from base to 6 to months and $3,486 
+print(Tot_ERMoneySaved<-3486*8) 
 
 ##Total Inpatient Nights for base
 print(Inpt_MentalBase_tot<- sum(GPRA_wide_data_MHcC$InpatientMentalNights.x))
@@ -116,20 +124,15 @@ print(Total_HospitalizationsSix<-sum(Total_InptVisitsSix,Total_OutptVisitsSix))
 print(Hospitalizations_change<- ((Total_HospitalizationsSix-Total_HospitalizationsBase)/Total_HospitalizationsBase)*100) ##54.2% reduction
 #print(InPt_money_saved<-34456*0.542) ##Saved $19,882.73 per patient in ER visit costs 
 ## Should grab the inflation rate do the math in R.
-print(Tot_InPtMoneySaved<-34456*(253-116)) ##Saved $3,976,546 total
+print(Tot_InPtMoneySaved<-34456*(253-116))
 
 ##Incarceration/Criminal Costs
 ##104 observations
-
+```
+Incarerated 
+```{r}
 GPRA_wide_Crime<- GPRA_wide[c("ArrestedConfineDays.x", "ArrestedConfineDays.y", "DAUseIllegDrugsDays.x", "DAUseIllegDrugsDays.y","NrCrimes.x", "NrCrimes.y", "ArrestedDays.x", "ArrestedDays.y")]
 GPRA_wide_data_Crime = na.omit(GPRA_wide_Crime)
-
-
-##Total Days Incarcerated for base
-print(IncarceratedBase_tot<- sum(GPRA_wide_data_Crime$ArrestedConfineDays.x))
-
-##Total Days Incarcerated for 6mo
-print(IncarceratedSix_tot<- sum(GPRA_wide_data_Crime$ArrestedConfineDays.y))
 
 ##Percent change in Days Incarcerated
 print(Incarcerated_change<- ((IncarceratedSix_tot-IncarceratedBase_tot)/IncarceratedBase_tot)*100) ##170% increase
@@ -137,9 +140,11 @@ print(Incarcerated_change<- ((IncarceratedSix_tot-IncarceratedBase_tot)/Incarcer
 ##Costs of Incarceration
 print(Incarceration_costs<-(101.88*1.7))
 ## Should be 105, because we only have 105 people in the data set
-print(Incarceration_TotCosts<-(Incarceration_costs*105))
+print(Incarceration_TotCosts<-(Incarceration_costs*200))
 
-
+```
+Income
+```{r}
 ##Mean Income Wage for base
 print(IncomeBase<- mean(GPRA_wide_data_EduEmp$IncomeWages.x))
 
@@ -178,6 +183,9 @@ print(TotIncome_change<- ((TotIncomeSix-TotIncomeBase)/TotIncomeBase)*100) ##69%
 print(Income_diff<- (TotIncomeSix-TotIncomeBase)) ##$121 increase
 print(Tot_Income_diff<-(Income_diff*200)) ##$24,200 increase overall
 
+```
+CEA
+```{r}
 GPRA_wide_EnuffMoney<- GPRA_wide[c("EnoughMoneyForNeeds.x", "EnoughMoneyForNeeds.y")]
 GPRA_wide_data_EnuffMoney = na.omit(GPRA_wide_EnuffMoney)
 ##48 Observations
@@ -246,5 +254,4 @@ print(PsycEmoSix<- median(GPRA_wide_data_PsycEmo$PsycholEmotImpact.y))
 print(PsycEmo_change<- ((PsycEmoSix-PsycEmoBase)/PsycEmoBase)*100) ##25% decrease; i.e. change from "considerably" to "moderately"
 
 ```
-
 
