@@ -70,7 +70,18 @@ GPRA_wide_MHcC[is.na(GPRA_wide_MHcC)]<-0
 GPRA_wide_data_MHcC = na.omit(GPRA_wide_MHcC)
 ```
 ER and Hospital Calculations
+
+ER and Hosp
+WISQARS age range 21 to 67 everything else included.
+Took the average of the five intents that it included: unitentiaional, sexual assualt, other assualt, self-harm, legal intervention: https://wisqars.cdc.gov:8443/costT/cost_Part1_Finished.jsp
+This include work loss costs not sure if that should be included have a low rate of working.
+
+Adjust for inflation: 
+
 ```{r}
+
+### Need age 
+range(GPRA_wide$Age.x)
 ##Total ER visits for base
 print(ER_AlcoholBase_tot<- sum(GPRA_wide_data_MHcC$ERAlcoholSATimes.x))
 print(ER_MentalBase_tot<- sum(GPRA_wide_data_MHcC$ERMentalTimes.x))
@@ -85,8 +96,10 @@ print(Total_ERvisitsSix<-sum(ER_AlcoholSix_tot,ER_MentalSix_tot))
 print(perc_change<- ((Total_ERvisitsSix-Total_ERvisitsBase)/Total_ERvisitsBase)*100) ##44.4% reduction
 #print(ER_money_saved<-3486*0.444) ##Saved $1,548 per patient in ER visit costs
 
-## Using 8, because we are looking at the sum of visits to the ER.  There were 8 less visits from base to 6 to months and $3,486 
-print(Tot_ERMoneySaved<-3486*8) 
+## Using 8, because we are looking at the sum of visits to the ER.  There were 8 less visits from base to 6 to months and $6,139
+mean(6139,8540,6716,4823,6484)
+print(Tot_ERMoneySaved<-mean(6139,8540,6716,4823,6484)*8) 
+### Adjust for inflation
 
 ##Total Inpatient Nights for base
 print(Inpt_MentalBase_tot<- sum(GPRA_wide_data_MHcC$InpatientMentalNights.x))
@@ -130,9 +143,17 @@ print(Tot_InPtMoneySaved<-34456*(253-116))
 ##104 observations
 ```
 Incarerated 
+
 ```{r}
 GPRA_wide_Crime<- GPRA_wide[c("ArrestedConfineDays.x", "ArrestedConfineDays.y", "DAUseIllegDrugsDays.x", "DAUseIllegDrugsDays.y","NrCrimes.x", "NrCrimes.y", "ArrestedDays.x", "ArrestedDays.y")]
 GPRA_wide_data_Crime = na.omit(GPRA_wide_Crime)
+
+##Total Days Incarcerated for base
+print(IncarceratedBase_tot<- sum(GPRA_wide_data_Crime$ArrestedConfineDays.x))
+
+##Total Days Incarcerated for 6mo
+print(IncarceratedSix_tot<- sum(GPRA_wide_data_Crime$ArrestedConfineDays.y))
+
 
 ##Percent change in Days Incarcerated
 print(Incarcerated_change<- ((IncarceratedSix_tot-IncarceratedBase_tot)/IncarceratedBase_tot)*100) ##170% increase
