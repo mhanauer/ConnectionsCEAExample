@@ -65,9 +65,10 @@ Grab just the variables that we want.
 
 We first checked if there were any actual NAs in the each of the times variables that were actual NAs (i.e. they put NA on the non-times variables).  Then we made all the NAs Zero, because the remaining NAs should only be zeros.
 ```{r}
-GPRA_wide_MHcC<- GPRA_wide[c("ERAlcoholSA.x", "ERAlcoholSATimes.x", "ERAlcoholSA.y","ERAlcoholSATimes.y", "ERMental.x",  "ERMentalTimes.x", "ERMental.y", "ERMentalTimes.y", "InpatientMental.x", "InpatientMentalNights.x", "InpatientMental.y", "InpatientMentalNights.y", "InpatientAlcoholSA.x", "InpatientAlcoholSANights.x", "InpatientAlcoholSA.y", "InpatientAlcoholSANights.y", "OutpatientMental.x", "OutpatientMentalTimes.x", "OutpatientMental.y", "OutpatientMentalTimes.y", "OutpatientAlcoholSA.x", "OutpatientAlcoholSATimes.x", "OutpatientAlcoholSA.y", "OutpatientAlcoholSATimes.y")]
+GPRA_wide_MHcC<- GPRA_wide[c("ERAlcoholSATimes.x","ERAlcoholSATimes.y",  "ERMentalTimes.x", "ERMentalTimes.y", "ERPhysicalTimes.x", "ERPhysicalTimes.y", "InpatientMentalNights.x", "InpatientMentalNights.y", "InpatientAlcoholSANights.x", "InpatientAlcoholSANights.y", "InpatientPhysicalNights.x", "InpatientPhysicalNights.y", "OutpatientMentalTimes.x", "OutpatientMentalTimes.y", "OutpatientAlcoholSATimes.x", "OutpatientAlcoholSATimes.y", "OutpatientPhysicalTimes.x", "OutpatientPhysicalTimes.y")]
 GPRA_wide_MHcC[is.na(GPRA_wide_MHcC)]<-0
 GPRA_wide_data_MHcC = na.omit(GPRA_wide_MHcC)
+dim(GPRA_wide_data_MHcC)
 ```
 ER and Hospital Calculations
 
@@ -76,74 +77,66 @@ WISQARS age range 21 to 67 everything else included.
 Took the average of the five intents that it included: unitentiaional, sexual assualt, other assualt, self-harm, legal intervention: https://wisqars.cdc.gov:8443/costT/cost_Part1_Finished.jsp
 This include work loss costs not sure if that should be included have a low rate of working.
 
-Adjust for inflation: 
+Adjust for inflation: https://meps.ahrq.gov/about_meps/Price_Index.shtml#t1a3
 
+Multiple the number the base year (2010) with the actual year (2017)
+
+ER first
 ```{r}
 
 ### Need age 
 range(GPRA_wide$Age.x)
 ##Total ER visits for base
-print(ER_AlcoholBase_tot<- sum(GPRA_wide_data_MHcC$ERAlcoholSATimes.x))
-print(ER_MentalBase_tot<- sum(GPRA_wide_data_MHcC$ERMentalTimes.x))
-print(Total_ERvisitsBase<-sum(ER_AlcoholBase_tot,ER_MentalBase_tot))
 
-##Total ER visits for 6mo
-print(ER_AlcoholSix_tot<- sum(GPRA_wide_data_MHcC$ERAlcoholSATimes.y))
-print(ER_MentalSix_tot<- sum(GPRA_wide_data_MHcC$ERMentalTimes.y))
-print(Total_ERvisitsSix<-sum(ER_AlcoholSix_tot,ER_MentalSix_tot))
+Total_ERvisitsBase<-sum(GPRA_wide_data_MHcC$ERAlcoholSATimes.x, GPRA_wide_data_MHcC$ERMentalTimes.x, GPRA_wide_data_MHcC$ERPhysicalTimes.x)
 
-##Percent change in ER visits
-print(perc_change<- ((Total_ERvisitsSix-Total_ERvisitsBase)/Total_ERvisitsBase)*100) ##44.4% reduction
-#print(ER_money_saved<-3486*0.444) ##Saved $1,548 per patient in ER visit costs
+Total_ERvisitsMonth6<-sum(GPRA_wide_data_MHcC$ERAlcoholSATimes.y, GPRA_wide_data_MHcC$ERMentalTimes.y, GPRA_wide_data_MHcC$ERPhysicalTimes.y)
+Total_ERvisitsMonth6
 
 ## Using 8, because we are looking at the sum of visits to the ER.  There were 8 less visits from base to 6 to months and $6,139
 mean(6139,8540,6716,4823,6484)
-print(Tot_ERMoneySaved<-mean(6139,8540,6716,4823,6484)*8) 
-### Adjust for inflation
-
+Tot_ERMoneySaved<-mean(6139,8540,6716,4823,6484)*(Total_ERvisitsBase-Total_ERvisitsMonth6) 
+### Adjust for inflation for health care for 2017
+inflat = 106.073/95.705
+Tot_ERMoneySaved = Tot_ERMoneySaved*inflat
+Tot_ERMoneySaved
+```
+Inpat
+Inpat costs: https://www.kff.org/health-costs/state-indicator/expenses-per-inpatient-day/?currentTimeframe=0&selectedRows=%7B%22states%22:%7B%22indiana%22:%7B%7D%7D%7D&sortModel=%7B%22colId%22:%22Location%22,%22sort%22:%22asc%22%7D
+```{r}
 ##Total Inpatient Nights for base
-print(Inpt_MentalBase_tot<- sum(GPRA_wide_data_MHcC$InpatientMentalNights.x))
-print(Inpt_AlcoholBase_tot<- sum(GPRA_wide_data_MHcC$InpatientAlcoholSANights.x))
-print(Total_InptVisitsBase<-sum(Inpt_MentalBase_tot,Inpt_AlcoholBase_tot))
+Total_inpat_base = sum(GPRA_wide_data_MHcC$InpatientMentalNights.x, GPRA_wide_data_MHcC$InpatientAlcoholSANights.x, GPRA_wide_data_MHcC$InpatientMentalNights.x)
+Total_inpat_base
 
-##Total Inpatient Nights for 6mo
-print(Inpt_MentalSix_tot<- sum(GPRA_wide_data_MHcC$InpatientMentalNights.y))
-print(Inpt_AlcoholSix_tot<- sum(GPRA_wide_data_MHcC$InpatientAlcoholSANights.y))
-print(Total_InptVisitsSix<-sum(Inpt_MentalSix_tot,Inpt_AlcoholSix_tot))
+Total_inpat_month6 = sum(GPRA_wide_data_MHcC$InpatientMentalNights.y, GPRA_wide_data_MHcC$InpatientAlcoholSANights.y, GPRA_wide_data_MHcC$InpatientPhysicalNights.y)
+Total_inpat_month6
 
-##Percent change in Inpatient Nights
-print(perc_change<- ((Total_InptVisitsSix-Total_InptVisitsBase)/Total_InptVisitsBase)*100) ##42.5% reduction
-
+inpat_costs= 2508
+TotalInpatMoneySaved = (Total_inpat_base - Total_inpat_month6)*inpat_costs*inflat
+TotalInpatMoneySaved
+```
+Outpat
+Price per outpat visit: $183 in 1995 dollars: https://www.ncbi.nlm.nih.gov/pubmed/10156484
+```{r}
 ##Total Outpatient Nights for base
 print(Outpt_MentalBase_tot<- sum(GPRA_wide_data_MHcC$OutpatientMentalTimes.x))
 print(Outpt_AlcoholBase_tot<- sum(GPRA_wide_data_MHcC$OutpatientAlcoholSATimes.x))
 print(Total_OutptVisitsBase<-sum(Outpt_MentalBase_tot,Outpt_AlcoholBase_tot))
 
-##Total Outpatient Nights for 6mo
-print(Outpt_MentalSix_tot<- sum(GPRA_wide_data_MHcC$OutpatientMentalTimes.y))
-print(Outpt_AlcoholSix_tot<- sum(GPRA_wide_data_MHcC$OutpatientAlcoholSATimes.y))
-print(Total_OutptVisitsSix<-sum(Outpt_MentalSix_tot,Outpt_AlcoholSix_tot))
+Total_outpat_base = sum(GPRA_wide_data_MHcC$OutpatientAlcoholSATimes.x, GPRA_wide_data_MHcC$OutpatientMentalTimes.x, GPRA_wide_data_MHcC$OutpatientPhysicalTimes.x)
 
-##Percent change in Outpatient Nights
-print(perc_change<- ((Total_OutptVisitsSix-Total_OutptVisitsBase)/Total_OutptVisitsBase)*100) ##59.5% reduction
+Total_outpat_month6 = sum(GPRA_wide_data_MHcC$OutpatientAlcoholSATimes.y, GPRA_wide_data_MHcC$OutpatientMentalTimes.y, GPRA_wide_data_MHcC$OutpatientPhysicalTimes.y)
 
-##Total Hospitalization Nights for base
-print(Total_HospitalizationsBase<-sum(Total_InptVisitsBase,Total_OutptVisitsBase))
+inflat_95 = 106.073 / 73.346
 
-##Total Hospitalization Nights for 6mo
-print(Total_HospitalizationsSix<-sum(Total_InptVisitsSix,Total_OutptVisitsSix))
+out_save = 183
 
-##Percent change in Total Hospitalization Nights
-print(Hospitalizations_change<- ((Total_HospitalizationsSix-Total_HospitalizationsBase)/Total_HospitalizationsBase)*100) ##54.2% reduction
-#print(InPt_money_saved<-34456*0.542) ##Saved $19,882.73 per patient in ER visit costs 
-## Should grab the inflation rate do the math in R.
-print(Tot_InPtMoneySaved<-34456*(253-116))
-
-##Incarceration/Criminal Costs
-##104 observations
+TotalOutMoneySaved = (Total_outpat_base - Total_outpat_month6)* out_save*inflat_95
+TotalOutMoneySaved
 ```
-Incarerated 
 
+
+Incarerated 
 ```{r}
 GPRA_wide_Crime<- GPRA_wide[c("ArrestedConfineDays.x", "ArrestedConfineDays.y", "DAUseIllegDrugsDays.x", "DAUseIllegDrugsDays.y","NrCrimes.x", "NrCrimes.y", "ArrestedDays.x", "ArrestedDays.y")]
 GPRA_wide_data_Crime = na.omit(GPRA_wide_Crime)
